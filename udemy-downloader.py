@@ -44,7 +44,7 @@ idCourse = ''
 courses = []
 options = webdriver.ChromeOptions()
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
-webD = webdriver.Chrome(options=options, executable_path='chromedriver.exe')
+webD = '' #webdriver
 req = requests.Session()
 
 def getTokens():
@@ -151,10 +151,13 @@ def especialCharacteres(text):
 if __name__ == '__main__':
     try:
         init()
-        USER = input("Email:")
-        PASS = input("Pass:")
         ctypes.windll.kernel32.SetConsoleTitleW(os.path.basename(__file__).replace('.py','') + f' | by Jebx')
         print(f"{Fore.YELLOW}{potada}{Style.RESET_ALL}")
+        USER = input("Email:")
+        PASS = input("Pass:")
+        print("Don't close the browser!!!!")
+        time.sleep(2)
+        webD = webdriver.Chrome(options=options, executable_path='chromedriver.exe')
         if getTokens():
             getIdCourses()
             print()
