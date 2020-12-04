@@ -5,8 +5,11 @@ This tool only downloads the videos. In the v2.0 maybe downloads pdfs too!!
 
 # Install
 pip install beautifulsoup4
+
 pip install selenium
+
 pip install colorama
+
 pip install requests
 
 # Execute
