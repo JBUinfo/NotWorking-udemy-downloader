@@ -172,4 +172,4 @@ if __name__ == '__main__':
             input('Press ENTER to EXIT')
             sys.exit()
     except:
-        print("\nAdios!!")
+        print("\nGoodbye!!")
