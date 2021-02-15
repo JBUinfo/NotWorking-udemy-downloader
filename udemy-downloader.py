@@ -43,13 +43,21 @@ objWithVideosURL = []
 idCourse = ''
 courses = []
 options = webdriver.ChromeOptions()
-options.add_experimental_option("excludeSwitches", ["enable-logging"])
+options.add_experimental_option("excludeSwitches", ['enable-automation'])
+options.add_experimental_option('useAutomationExtension', False)
+options.add_experimental_option("excludeSwitches", ['enable-logging'])
+options.add_argument("--disable-blink-features=AutomationControlled")
 webD = '' #webdriver
 req = requests.Session()
 
 def getTokens():
     try:
-        webD.get("https://www.udemy.com/join/login-popup/?locale=es_ES&response_type=html&next=https%3A%2F%2Fwww.udemy.com%2F")
+        webD.get("https://www.udemy.com/join/login-popup/")
+        while "Access to this page" in webD.title:
+            print('Resolve the captcha...')
+            print('Waiting 20 seconds...')
+            time.sleep(20)
+            pass
         csrfmiddlewaretoken = webD.find_element_by_name("csrfmiddlewaretoken").get_attribute("value")
         #get cookies
         cookies = str(webD.execute_script("return document.cookie"))
@@ -58,8 +66,6 @@ def getTokens():
         index = csrftoken.index(';')
         csrftoken = csrftoken[:index]
         header['Cookie'] = csrftoken
-
-        #form
         inputElement = webD.find_element_by_id("email--1")
         inputElement.send_keys(USER)
         inputElement = webD.find_element_by_id("id_password")
@@ -70,6 +76,11 @@ def getTokens():
         #wait until the page is loaded
         print('Wait 6 seconds...')
         time.sleep(6)
+        while "Cloudflare" in webD.title:
+            print('Resolve the captcha...')
+            print('Waiting 30 seconds...')
+            time.sleep(30)
+            pass
 
         #get cookies
         cookies = str(webD.execute_script("return document.cookie"))
@@ -80,6 +91,7 @@ def getTokens():
         authorization = authorization[:index]
         header['x-udemy-authorization'] = 'Bearer '+authorization
         header['Accept'] = '*/*'
+        header['cookie'] = cookies
         return True
     except Exception as e:
         print(f'error getPreToken: {e}')
@@ -107,11 +119,14 @@ def getIds():
         while(r.status_code == 200):
             ss = json.loads(r.text)
             for value in ss['results']:
-                objWithVideosURL.append({"id":value['id'],"title":value['title']})
+                info = {"id":value['id'],"title":value['title'],"asset_type":value['asset']['asset_type']}
+                if "Article" == value['asset']['asset_type']:
+                    info["id"] = value['asset']['id']
+                objWithVideosURL.append(info)
             count+=1
             r=req.get(f"https://www.udemy.com/api-2.0/users/me/subscribed-courses/{idCourse}/lectures/?page={count}", headers=header)
     except Exception as e:
-        print(f'error getVideos: {e}')
+        print(f'error getIds: {e}')
 
 def getVideos():
     try:
@@ -120,13 +135,35 @@ def getVideos():
         l = len(objWithVideosURL)
         printProgressBar(count, l, prefix = count, suffix = len(objWithVideosURL), length = 50)
         for value in objWithVideosURL:
-            if not os.path.isfile(f"{count} - {especialCharacteres(value['title'])}.mp4"):
-                r=req.get(f"https://www.udemy.com/api-2.0/users/me/subscribed-courses/{idCourse}/lectures/{value['id']}?&fields[asset]=stream_urls", headers=header)
+            if value['asset_type'] == "Article":
+                f = open(f"{count} - Articulo.html", "w")
+                r=req.get(f"https://www.udemy.com/api-2.0/assets/{value['id']}/?fields[asset]=@min,body", headers=header)
                 ss = json.loads(r.text)
-                if ss['asset']['stream_urls'] is None:#If it is not a course, make a txt file
-                    open(f"{count} - Go to the Course.txt", "w")
-                else:
-                  urllib.request.urlretrieve(ss['asset']['stream_urls']['Video'][0]['file'], f"{count} - {especialCharacteres(value['title'])}.mp4")
+                f.write(ss['body'])
+                f.close()
+            elif value['asset_type'] == "Video":
+                if not os.path.isfile(f"{count} - {especialCharacteres(value['title'])}.mp4"):
+                    r=req.get(f"https://www.udemy.com/api-2.0/users/me/subscribed-courses/{idCourse}/lectures/{value['id']}/?fields[lecture]=asset,supplementary_assets&fields[asset]=asset_type,stream_urls,filename", headers=header)
+                    ss = json.loads(r.text)
+                    urllib.request.urlretrieve(ss['asset']['stream_urls']['Video'][0]['file'], f"{count} - {especialCharacteres(value['title'])}.mp4")
+                    if len(ss['supplementary_assets']) != 0:
+                        for x in ss['supplementary_assets']:
+                            if "File" == x["asset_type"]:
+                                r=req.get(f"https://www.udemy.com/api-2.0/users/me/subscribed-courses/{idCourse}/lectures/{value['id']}/supplementary-assets/{x['id']}/?fields[asset]=download_urls", headers=header)
+                                sa = json.loads(r.text)
+                                r=req.get(f"{sa['download_urls']['File'][0]['file']}", stream=True)
+                                chunk_size=128
+                                with open(f"{count} - {x['filename']}", "wb") as fd:
+                                    for chunk in r.iter_content(chunk_size=chunk_size):
+                                        fd.write(chunk)
+                            else:
+                                f = open(f"{count} - Link de descarga.txt", "w")
+                                r=req.get(f"https://www.udemy.com/api-2.0/users/me/subscribed-courses/{idCourse}/lectures/{value['id']}/supplementary-assets/{x['id']}/?fields[asset]=external_url", headers=header)
+                                sa = json.loads(r.text)
+                                f.write(f"{x['filename']} : {sa['external_url']}")
+                                f.close()
+            else:
+                open(f"{count} - Maybe here there is an exam.txt", "w")
             count+=1
             printProgressBar(count, l, prefix = count, suffix = len(objWithVideosURL), length = 50)
     except Exception as e:
