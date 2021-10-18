@@ -13,8 +13,8 @@ pip install requests
 # Execute
 ![alt text](https://github.com/JBUinfo/udemy-downloader/blob/main/images/1.jpg?raw=true)
 
-![alt text](https://github.com/JBUinfo/udemy-downloader/blob/main/images/List Courses.png?raw=true)
+![alt text](https://github.com/JBUinfo/udemy-downloader/blob/main/images/List%20Courses.png?raw=true)
 
 ![alt text](https://github.com/JBUinfo/udemy-downloader/blob/main/images/3.PNG?raw=true)
 
-![alt text](https://github.com/JBUinfo/udemy-downloader/blob/main/images/List Videos.png?raw=true)
+![alt text](https://github.com/JBUinfo/udemy-downloader/blob/main/images/List%20Videos.png?raw=true)
