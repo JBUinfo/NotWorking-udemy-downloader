@@ -37,7 +37,7 @@ header = {
 "sec-fetch-site": "same-origin",
 "sec-fetch-user": "?1",
 "upgrade-insecure-requests": "1",
-}
+} #default headers request 
 csrfmiddlewaretoken = ''
 objWithVideosURL = []
 idCourse = ''
@@ -52,13 +52,13 @@ req = requests.Session()
 
 def getTokens():
     try:
-        webD.get("https://www.udemy.com/join/login-popup/")
-        while "Access to this page" in webD.title:
+        webD.get("https://www.udemy.com/join/login-popup/") #request to login page
+        while "Access to this page" in webD.title: #await to user to resolve captcha
             print('Resolve the captcha...')
             print('Waiting 20 seconds...')
             time.sleep(20)
             pass
-        csrfmiddlewaretoken = webD.find_element_by_name("csrfmiddlewaretoken").get_attribute("value")
+        csrfmiddlewaretoken = webD.find_element_by_name("csrfmiddlewaretoken").get_attribute("value")#get csrfmiddlewaretoken
         #get cookies
         cookies = str(webD.execute_script("return document.cookie"))
         index = cookies.index('csrftoken=')
@@ -76,7 +76,7 @@ def getTokens():
         #wait until the page is loaded
         print('Wait 6 seconds...')
         time.sleep(6)
-        while "Cloudflare" in webD.title:
+        while "Cloudflare" in webD.title: #await to user to resolve captcha
             print('Resolve the captcha...')
             print('Waiting 30 seconds...')
             time.sleep(30)
@@ -157,7 +157,7 @@ def getVideos():
                                     for chunk in r.iter_content(chunk_size=chunk_size):
                                         fd.write(chunk)
                             else:
-                                f = open(f"{count} - Link de descarga.txt", "w")
+                                f = open(f"{count} - Download link .txt", "w")
                                 r=req.get(f"https://www.udemy.com/api-2.0/users/me/subscribed-courses/{idCourse}/lectures/{value['id']}/supplementary-assets/{x['id']}/?fields[asset]=external_url", headers=header)
                                 sa = json.loads(r.text)
                                 f.write(f"{x['filename']} : {sa['external_url']}")
@@ -178,7 +178,7 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     if iteration == total:
         print()
 
-def especialCharacteres(text):
+def especialCharacteres(text):#replace special characters
     chars = '<>:"/\\|?*'
     for c in chars:
         if c in text:
